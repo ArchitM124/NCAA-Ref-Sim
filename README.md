@@ -13,8 +13,8 @@ After completing the MVP, the future updates could:
 - add leaderboards.
 - Use real play by play data to generate scenarios.
 ## Tech Stack
-Language: Java
-Version Control: Git and GitHub
-Development Environment: IntelliJ IDEA
-Testing: Java unit tests
-Interface: Text-based interface at first.
+- **Language:** Java
+- **Version Control:** Git and GitHub
+- **Development Environment:** IntelliJ IDEA
+- **Testing:** Java unit tests
+- **Interface:** Text-based interface at first
