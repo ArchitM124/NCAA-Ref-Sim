@@ -18,6 +18,7 @@ public class Scenario {
     private boolean touchdown;
     private boolean safety;
     private int timeElapsed;
+    private boolean outOfBounds;
     public Scenario() {
         Random random = new Random();
         //Generates game situation
@@ -83,6 +84,10 @@ public class Scenario {
         safety = endPosition <= 0;
         boolean turnoverOnDowns = (down == 4) && (yardsGained < distance) && !safety;
        turnover = playResult.equals("INTERCEPTION") || playResult.equals("FUMBLE") || turnoverOnDowns;
+       boolean canGoOutOfBounds = playResult.equals("COMPLETE")
+               || playResult.equals("GAINED YARDS")
+               || playResult.equals("LOST YARDS");
+       outOfBounds = canGoOutOfBounds && !touchdown && !safety && (random.nextInt(100) < 22);
        //Changes scoreboard based on play result
         if (touchdown || safety) {
             if (touchdown) {
@@ -137,8 +142,14 @@ public class Scenario {
     public String getPossession() {
         return possession;
     }
-    public int getFieldPosition() {
-        return fieldPosition;
+    public String getFieldPosition() {
+        if (fieldPosition < 50) {
+            return ("Own " + fieldPosition + "-yard line");
+        } else if (fieldPosition == 50) {
+            return "50-yard line";
+        } else {
+            return "Opponent's " + (100 - fieldPosition) + "-yard line";
+        }
     }
     public int getDown() {
         return down;
@@ -175,5 +186,8 @@ public class Scenario {
     }
     public boolean isSafety() {
         return safety;
+    }
+    public boolean isOutOfBounds() {
+        return outOfBounds;
     }
 }
