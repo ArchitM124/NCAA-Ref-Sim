@@ -73,7 +73,26 @@ public class Scenario {
         }
         gameClock = Math.max(0, gameClock - timeElapsed);
         if (playResult.equals("COMPLETE") || playResult.equals("GAINED YARDS")) {
-            yardsGained = random.nextInt(Math.min(30, yardsToGoal)) + 1;
+            int roll = random.nextInt(100);
+            int gain;
+            if (playType.equals("RUN")) {
+                if (roll < 70) {
+                    gain = random.nextInt(6) + 1;
+                } else if (roll < 95) {
+                    gain = random.nextInt(9) + 7;
+                } else {
+                    gain = random.nextInt(26) + 16;
+                }
+            } else {
+                if (roll < 60) {
+                    gain = random.nextInt(10) + 3;
+                } else if (roll < 90) {
+                    gain = random.nextInt(13) + 13;
+                } else {
+                    gain = random.nextInt(26) + 26;
+                }
+            }
+            yardsGained = Math.min(gain, yardsToGoal);
         } else if (playResult.equals("LOST YARDS")) {
             yardsGained = -(random.nextInt(5) + 1);
         } else {
