@@ -19,6 +19,7 @@ public class Scenario {
     private boolean safety;
     private int timeElapsed;
     private boolean outOfBounds;
+    private int gameClockAfterPlay;
     public Scenario() {
         Random random = new Random();
         //Generates game situation
@@ -71,7 +72,8 @@ public class Scenario {
         } else {
             timeElapsed = random.nextInt(16) + 5;
         }
-        gameClock = Math.max(0, gameClock - timeElapsed);
+        timeElapsed = Math.min(timeElapsed, gameClock - 1);
+        gameClockAfterPlay = Math.max(0, gameClock - timeElapsed);
         if (playResult.equals("COMPLETE") || playResult.equals("GAINED YARDS")) {
             int roll = random.nextInt(100);
             int gain;
@@ -184,6 +186,9 @@ public class Scenario {
     }
     public int getYardsGained() {
         return yardsGained;
+    }
+    public int getGameClockAfterPlay() {
+        return gameClockAfterPlay;
     }
     public int getTimeElapsed() {
         return timeElapsed;

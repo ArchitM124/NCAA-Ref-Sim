@@ -8,4 +8,6 @@ public void main() {
     IO.println();
     IO.println("Get ready to make realistic referee decisions!");
 
+    Game game = new Game();
+    game.startGame();
 }

@@ -72,7 +72,8 @@ public class Game {
         IO.println("Possession: " + scenario.getPossession());
         IO.print("Score: HOME " + scenario.getHomeScore());
         IO.println(" - AWAY " + scenario.getAwayScore());
-        IO.println("Game clock: " + scenario.getGameClock());
+        IO.println("Clock before snap: " + formatClock(scenario.getGameClock()));
+        IO.println("Clock after play: " + formatClock(scenario.getGameClockAfterPlay()));
         IO.print("Down: " + scenario.getDown());
         IO.println(" and " + scenario.getDistance());
         IO.println("Field position: " + scenario.getFieldPosition());
@@ -84,7 +85,11 @@ public class Game {
         } else {
             IO.println("Out of bounds: No");
         }
-
+    }
+    private String formatClock(int totalSeconds) {
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%d:%02d", minutes, seconds);
     }
     private void displayChoices() {
         IO.println();
