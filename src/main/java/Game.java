@@ -1,9 +1,11 @@
 public class Game {
     private final RuleEngine re = new RuleEngine();
     private int score;
+    private int questionsAsked;
     private final int totalScenarios = 5;
 
     public void startGame() {
+        questionsAsked = 0;
         score = 0;
         IO.println("==================================");
         IO.println("          GAME START");
@@ -18,6 +20,7 @@ public class Game {
             IO.println("SCENARIO " + i + " OF " + totalScenarios);
             IO.println("----------------------------------");
             displayScenario(scenario);
+            questionsAsked++;
             displayChoices();
             int answer = getAnswer();
             boolean shouldStop = re.shouldClockStop(scenario);
@@ -37,6 +40,7 @@ public class Game {
                 IO.println("When should the game clock restart?");
                 IO.println("1. On the referee's ready signal");
                 IO.println("2. On the snap");
+                questionsAsked++;
                 int restartAnswer = getRestartAnswer();
                 String correctAction = re.determineClockAction(scenario);
                 int correctAnswer = -1;
@@ -62,7 +66,7 @@ public class Game {
         IO.println("==================================");
         IO.println("           GAME OVER");
         IO.println("==================================");
-        IO.println("Your final score: " + score);
+        IO.println("Your final score: " + score + "/" + questionsAsked);
     }
     private void displayScenario(Scenario scenario) {
         IO.println("Possession: " + scenario.getPossession());
@@ -91,7 +95,7 @@ public class Game {
     private int getAnswer() {
         while (true) {
             try {
-                int answer = Integer.parseInt(IO.readln("Enter your choice (1-2)"));
+                int answer = Integer.parseInt(IO.readln("Enter your choice (1-2)\n"));
                 if (answer == 1 || answer == 2) {
                     return answer;
                 }
@@ -103,7 +107,7 @@ public class Game {
     private int getRestartAnswer() {
         while (true) {
             try {
-                int answer = Integer.parseInt(IO.readln("When should the game clock restart? (1-2)"));
+                int answer = Integer.parseInt(IO.readln("When should the game clock restart? (1-2)\n"));
                 if (answer == 1 || answer == 2) {
                     return answer;
                 }
