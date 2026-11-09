@@ -20,6 +20,7 @@ public class Scenario {
     private int timeElapsed;
     private boolean outOfBounds;
     private int gameClockAfterPlay;
+    private String possessionAfterPlay;
     public Scenario() {
         Random random = new Random();
         //Generates game situation
@@ -110,6 +111,7 @@ public class Scenario {
                || playResult.equals("LOST YARDS");
        outOfBounds = canGoOutOfBounds && !touchdown && !safety && (random.nextInt(100) < 22);
        //Changes scoreboard based on play result
+        possessionAfterPlay = possession;
         if (touchdown || safety) {
             if (touchdown) {
                 if (possession.equals("HOME")) {
@@ -125,18 +127,18 @@ public class Scenario {
                 }
             }
             if (possession.equals("HOME")) {
-                possession = "AWAY";
+                possessionAfterPlay = "AWAY";
             } else {
-                possession = "HOME";
+                possessionAfterPlay = "HOME";
             }
             fieldPositionAfterPlay = 25;
             downAfterPlay = 1;
             distanceAfterPlay = 10;
         } else if (turnover) {
             if (possession.equals("HOME")) {
-                possession = "AWAY";
+                possessionAfterPlay = "AWAY";
             } else {
-                possession = "HOME";
+                possessionAfterPlay = "HOME";
             }
             fieldPositionAfterPlay = 100 - endPosition;
             downAfterPlay = 1;
@@ -204,6 +206,9 @@ public class Scenario {
     }
     public int getFieldPositionAfterPlay() {
         return fieldPositionAfterPlay;
+    }
+    public String getPossessionAfterPlay() {
+        return possessionAfterPlay;
     }
     public boolean isTouchdown() {
         return touchdown;

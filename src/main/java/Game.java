@@ -1,8 +1,10 @@
+import java.util.Random;
 public class Game {
     private final RuleEngine re = new RuleEngine();
     private int score;
     private int questionsAsked;
     private final int totalScenarios = 5;
+    private final Random random = new Random();
 
     public void startGame() {
         questionsAsked = 0;
@@ -10,14 +12,14 @@ public class Game {
         IO.println("==================================");
         IO.println("          GAME START");
         IO.println("==================================");
-        for (int i = 1; i <= totalScenarios; i++) {
+        int scenarioNumber = 1;
+        while (scenarioNumber <= totalScenarios) {
             Scenario scenario = new Scenario();
             if (scenario.isTouchdown() || scenario.isSafety()) {
-                IO.println("Scoring play! Simming kickoff.");
                 continue;
             }
             IO.println();
-            IO.println("SCENARIO " + i + " OF " + totalScenarios);
+            IO.println("SCENARIO " + scenarioNumber + " OF " + totalScenarios);
             IO.println("----------------------------------");
             displayScenario(scenario);
             questionsAsked++;
@@ -61,6 +63,8 @@ public class Game {
                     }
                 }
             }
+            showTimeToNextSnap(scenario);
+            scenarioNumber++;
         }
         IO.println();
         IO.println("==================================");
@@ -90,6 +94,29 @@ public class Game {
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
         return String.format("%d:%02d", minutes, seconds);
+    }
+    private void showTimeToNextSnap(Scenario scenario) {
+        String action = re.determineClockAction(scenario);
+        int playClockLeft = random.nextInt(25) + 1;
+        int secondsUntilSnap = 40 - playClockLeft;
+        int runoff;
+        if (action.equals("RUNNING")) {
+            runoff = secondsUntilSnap;
+        } else if (action.equals("READY")) {
+            int chainTime = random.nextInt(6) + 5;
+            runoff = Math.max(0, secondsUntilSnap - chainTime);
+        } else {
+            runoff = 0;
+        }
+        int clockAtSnap = Math.max(0, scenario.getGameClockAfterPlay() - runoff);
+        IO.println();
+        IO.println("Play clock starts at 40.");
+        IO.println("Offense snaps with " + playClockLeft + " seconds left on the play clock.");
+        IO.println("Game clock: " + formatClock(scenario.getGameClockAfterPlay())
+                + " --> " + formatClock(clockAtSnap) + " at the next snap");
+        if (clockAtSnap == 0) {
+            IO.println("Time expires before the snap. Ball Game.");
+        }
     }
     private void displayChoices() {
         IO.println();
