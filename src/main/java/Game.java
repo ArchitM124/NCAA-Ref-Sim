@@ -5,7 +5,11 @@ public class Game {
     private int questionsAsked;
     private final int totalScenarios = 5;
     private final Random random = new Random();
+    private final int timeLimit;
 
+    public Game(int timeLimit) {
+        this.timeLimit = timeLimit;
+    }
     public void startGame() {
         questionsAsked = 0;
         score = 0;
@@ -24,10 +28,15 @@ public class Game {
             displayScenario(scenario);
             questionsAsked++;
             displayChoices();
+            long startTime = System.currentTimeMillis();
             int answer = getAnswer();
+            boolean tooSlow = isTooSlow(startTime);
             boolean shouldStop = re.shouldClockStop(scenario);
-            if ((answer == 1) == shouldStop) {
-                IO.println("Correct! The Clock ruling is correct.");
+            boolean rightCall = (answer == 1) == shouldStop;
+            if (tooSlow && rightCall) {
+                IO.println("Right call, but too late.");
+            } else if (rightCall) {
+                IO.println("Correct! That's the right decision.");
                 score++;
             } else {
                 IO.print("Incorrect. The clock should ");
@@ -43,7 +52,9 @@ public class Game {
                 IO.println("1. On the referee's ready signal");
                 IO.println("2. On the snap");
                 questionsAsked++;
+                long restartStart = System.currentTimeMillis();
                 int restartAnswer = getRestartAnswer();
+                boolean restartTooSlow = (isTooSlow(restartStart));
                 String correctAction = re.determineClockAction(scenario);
                 int correctAnswer = -1;
                 if (correctAction.equals("READY")) {
@@ -51,7 +62,10 @@ public class Game {
                 } else {
                     correctAnswer = 2;
                 }
-                if (restartAnswer == correctAnswer) {
+                boolean rightRestart = restartAnswer == correctAnswer;
+                if (restartTooSlow && rightRestart) {
+                    IO.println("Right call, but too late.");
+                } else if (rightRestart) {
                     IO.println("Correct! That's the right decision");
                     score++;
                 } else {
@@ -64,6 +78,7 @@ public class Game {
                 }
             }
             showTimeToNextSnap(scenario);
+            pause(2000);
             scenarioNumber++;
         }
         IO.println();
@@ -95,6 +110,21 @@ public class Game {
         int seconds = totalSeconds % 60;
         return String.format("%d:%02d", minutes, seconds);
     }
+    private boolean isTooSlow(long startTime) {
+        int secondsTaken = (int) ((System.currentTimeMillis() - startTime) / 1000);
+        if (secondsTaken > timeLimit) {
+            IO.println("Too slow! You had " + timeLimit + " seconds. You took " + secondsTaken + " seconds.");
+            return true;
+        }
+        IO.println("You took " + secondsTaken + " seconds out of " + timeLimit + ".");
+        return false;
+    }
+    private void pause(int mls) {
+        try {
+            Thread.sleep(mls);
+        } catch (InterruptedException e) {
+        }
+    }
     private void showTimeToNextSnap(Scenario scenario) {
         String action = re.determineClockAction(scenario);
         int playClockLeft = random.nextInt(25) + 1;
@@ -123,6 +153,7 @@ public class Game {
         IO.println("What should happen to the game clock?");
         IO.println("1. Stop the game clock");
         IO.println("2. Keep the game clock running");
+        IO.println("You have " + timeLimit + " seconds.");
     }
     private int getAnswer() {
         while (true) {
