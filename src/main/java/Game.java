@@ -61,7 +61,7 @@ public class Game {
                 IO.println("2. On the snap");
                 questionsAsked++;
                 long restartStart = System.currentTimeMillis();
-                int restartAnswer = getChoice("When should the game clock restart?(1-2)");
+                int restartAnswer = getChoice("When should the game clock restart? (1-2)");
                 boolean restartTooSlow = isTooSlow(restartStart);
                 String correctAction = ruleEngine.determineClockAction(scenario);
                 int correctAnswer;
