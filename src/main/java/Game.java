@@ -1,4 +1,10 @@
 import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 public class Game {
     private final RuleEngine re = new RuleEngine();
     private int score;
@@ -86,6 +92,14 @@ public class Game {
         IO.println("           GAME OVER");
         IO.println("==================================");
         IO.println("Your final score: " + score + "/" + questionsAsked);
+        IO.println();
+        String name = IO.readln("Enter your name for the leaderboard:\n").trim();
+        name = name.replace(",", "");
+        if (name.isEmpty()) {
+            name = "Anonymous";
+        }
+        saveScore(name);
+        showLeaderBoard();
     }
     private void displayScenario(Scenario scenario) {
         IO.println("Possession: " + scenario.getPossession());
@@ -124,6 +138,66 @@ public class Game {
             Thread.sleep(mls);
         } catch (InterruptedException e) {
         }
+    }
+    private void saveScore(String name) {
+        String difficulty;
+        if (timeLimit == 10) {
+            difficulty = "Hard";
+        } else {
+            difficulty = "Regular";
+        }
+        try (FileWriter fw = new FileWriter("leaderboard.txt", true)) {
+            fw.write(name + "," + score + "," + questionsAsked + "," + difficulty + "\n");
+        } catch (IOException e) {
+            IO.println("Could not save score");
+        }
+    }
+    private int percent(String line) {
+        String[] parts = line.split(",");
+        int correct = Integer.parseInt(parts[1]);
+        int total = Integer.parseInt(parts[2]);
+        if (total == 0) {
+            return 0;
+        }
+        return correct * 100 / total;
+    }
+    // compares lines and returns negative if a should rank higher, positive if b should rank higher
+    private int compareLines(String a, String b) {
+        int byPercent = Integer.compare(percent(b), percent(a));
+        if (byPercent != 0) {
+            return byPercent;
+        }
+        String difficultyA = a.split(",") [3];
+        String difficultyB = b.split(",") [3];
+        if (difficultyA.equals("Hard") && difficultyB.equals("Regular")) {
+            return -1;
+        }
+        if (difficultyA.equals("Regular") && difficultyB.equals("Hard")) {
+            return 1;
+        }
+        return 0;
+    }
+    private  void showLeaderBoard() {
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("leaderboard.txt"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (!line.isBlank()) {
+                    lines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            IO.println("Couldn't load the leaderboard");
+            return;
+        }
+        lines.sort((a, b) -> compareLines(a, b));
+        IO.println();
+        IO.println("========== LEADERBOARD ==========");
+        for (int i = 0; i < Math.min(5, lines.size()); i++) {
+            String[] parts = lines.get(i).split(",");
+            IO.println((i + 1) + ". " + parts[0] + " " + parts[1] + "/" + parts[2] + " (" + percent(lines.get(i)) + "%) " + parts[3]);
+        }
+
     }
     private void showTimeToNextSnap(Scenario scenario) {
         String action = re.determineClockAction(scenario);
