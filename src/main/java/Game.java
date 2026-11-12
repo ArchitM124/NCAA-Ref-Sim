@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 public class Game {
-    private final RuleEngine re = new RuleEngine();
+    private final RuleEngine ruleEngine = new RuleEngine();
     private int score;
     private int questionsAsked;
     private final int totalScenarios = 5;
@@ -25,6 +25,7 @@ public class Game {
         int scenarioNumber = 1;
         while (scenarioNumber <= totalScenarios) {
             Scenario scenario = new Scenario();
+            //Scoring plays result in kickoffs so they are skipped and a new play is generated
             if (scenario.isTouchdown() || scenario.isSafety()) {
                 continue;
             }
@@ -35,9 +36,9 @@ public class Game {
             questionsAsked++;
             displayChoices();
             long startTime = System.currentTimeMillis();
-            int answer = getAnswer();
+            int answer = getChoice("Enter your choice (1-2)");
             boolean tooSlow = isTooSlow(startTime);
-            boolean shouldStop = re.shouldClockStop(scenario);
+            boolean shouldStop = ruleEngine.shouldClockStop(scenario);
             boolean rightCall = (answer == 1) == shouldStop;
             if (tooSlow && rightCall) {
                 IO.println("Right call, but too late.");
@@ -52,6 +53,7 @@ public class Game {
                     IO.println("keep running.");
                 }
             }
+            //Asked when the clock should have stopped, even if player answered incorrectly.
             if (shouldStop) {
                 IO.println();
                 IO.println("When should the game clock restart?");
@@ -59,10 +61,10 @@ public class Game {
                 IO.println("2. On the snap");
                 questionsAsked++;
                 long restartStart = System.currentTimeMillis();
-                int restartAnswer = getRestartAnswer();
-                boolean restartTooSlow = (isTooSlow(restartStart));
-                String correctAction = re.determineClockAction(scenario);
-                int correctAnswer = -1;
+                int restartAnswer = getChoice("When should the game clock restart?(1-2)");
+                boolean restartTooSlow = isTooSlow(restartStart);
+                String correctAction = ruleEngine.determineClockAction(scenario);
+                int correctAnswer;
                 if (correctAction.equals("READY")) {
                     correctAnswer = 1;
                 } else {
@@ -72,7 +74,7 @@ public class Game {
                 if (restartTooSlow && rightRestart) {
                     IO.println("Right call, but too late.");
                 } else if (rightRestart) {
-                    IO.println("Correct! That's the right decision");
+                    IO.println("Correct! That's the right decision.");
                     score++;
                 } else {
                     IO.print("Incorrect. The clock should restart ");
@@ -94,6 +96,7 @@ public class Game {
         IO.println("Your final score: " + score + "/" + questionsAsked);
         IO.println();
         String name = IO.readln("Enter your name for the leaderboard:\n").trim();
+        //Commas separate fields so names should not have commas or it would mess up the leaderboard
         name = name.replace(",", "");
         if (name.isEmpty()) {
             name = "Anonymous";
@@ -124,6 +127,8 @@ public class Game {
         int seconds = totalSeconds % 60;
         return String.format("%d:%02d", minutes, seconds);
     }
+    //The time is checked after the player answer so it doesn't cut them off.
+    //Would be too complex to add a live countdown thread that would cut of, and not necessary for gameplay.
     private boolean isTooSlow(long startTime) {
         int secondsTaken = (int) ((System.currentTimeMillis() - startTime) / 1000);
         if (secondsTaken > timeLimit) {
@@ -137,8 +142,10 @@ public class Game {
         try {
             Thread.sleep(mls);
         } catch (InterruptedException e) {
+            //Should never happen as multiple threads arent called in this game
         }
     }
+    //Each game is saved as one line. (name,correctAnswered,totalAsked,difficulty)
     private void saveScore(String name) {
         String difficulty;
         if (timeLimit == 10) {
@@ -152,6 +159,7 @@ public class Game {
             IO.println("Could not save score");
         }
     }
+    //Ranked by percentage because games ask different numbers of questions.
     private int percent(String line) {
         String[] parts = line.split(",");
         int correct = Integer.parseInt(parts[1]);
@@ -161,7 +169,7 @@ public class Game {
         }
         return correct * 100 / total;
     }
-    // compares lines and returns negative if a should rank higher, positive if b should rank higher
+    // Ranks by percentage answered correctly, then Hard over Regular, then whoever got the score first stays on top.
     private int compareLines(String a, String b) {
         int byPercent = Integer.compare(percent(b), percent(a));
         if (byPercent != 0) {
@@ -177,12 +185,12 @@ public class Game {
         }
         return 0;
     }
-    private  void showLeaderBoard() {
+    private void showLeaderBoard() {
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader("leaderboard.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (!line.isBlank()) {
+                if (!line.isBlank() && line.split(",").length == 4) {
                     lines.add(line);
                 }
             }
@@ -199,8 +207,10 @@ public class Game {
         }
 
     }
+    //Uses the correct call, not player's answer so all details remain accurate.
+    //Play clock is always 40 because the scenarios do not include timeouts or penalties.
     private void showTimeToNextSnap(Scenario scenario) {
-        String action = re.determineClockAction(scenario);
+        String action = ruleEngine.determineClockAction(scenario);
         int playClockLeft = random.nextInt(25) + 1;
         int secondsUntilSnap = 40 - playClockLeft;
         int runoff;
@@ -229,24 +239,12 @@ public class Game {
         IO.println("2. Keep the game clock running");
         IO.println("You have " + timeLimit + " seconds.");
     }
-    private int getAnswer() {
+    private int getChoice(String prompt) {
         while (true) {
             try {
-                int answer = Integer.parseInt(IO.readln("Enter your choice (1-2)\n"));
-                if (answer == 1 || answer == 2) {
-                    return answer;
-                }
-            } catch (NumberFormatException e) {
-            }
-            IO.println("Invalid choice. Enter 1 or 2.");
-        }
-    }
-    private int getRestartAnswer() {
-        while (true) {
-            try {
-                int answer = Integer.parseInt(IO.readln("When should the game clock restart? (1-2)\n"));
-                if (answer == 1 || answer == 2) {
-                    return answer;
+                int choice = Integer.parseInt(IO.readln(prompt + "\n"));
+                if (choice == 1 || choice == 2) {
+                    return choice;
                 }
             } catch (NumberFormatException e) {
             }

@@ -1,5 +1,4 @@
 public void main() {
-    //WELCOME MESSAGE
     IO.println("==================================");
     IO.println("       NCAA-REF-SIMULATOR");
     IO.println("==================================");

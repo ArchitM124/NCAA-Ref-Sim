@@ -1,5 +1,6 @@
 import java.util.Random;
-//Initializes the scenario and scoreboard
+
+//Generates one random play in the last two minutes of the 4th quarter.
 public class Scenario {
     private int gameClock;
     private int homeScore;
@@ -11,19 +12,15 @@ public class Scenario {
     private String playType;
     private String playResult;
     private int yardsGained;
-    private int distanceAfterPlay;
     private int downAfterPlay;
     private boolean turnover;
-    private int fieldPositionAfterPlay;
     private boolean touchdown;
     private boolean safety;
-    private int timeElapsed;
     private boolean outOfBounds;
     private int gameClockAfterPlay;
-    private String possessionAfterPlay;
+
     public Scenario() {
         Random random = new Random();
-        //Generates game situation
         gameClock = random.nextInt(120) + 1;
         homeScore = random.nextInt(36);
         awayScore = random.nextInt(36);
@@ -35,7 +32,7 @@ public class Scenario {
         fieldPosition = random.nextInt(99) + 1;
         down = random.nextInt(4) + 1;
         int yardsToGoal = 100 - fieldPosition;
-
+        //Makes sure the distance isn't further than the goal line.
         if (down == 1) {
             distance = Math.min(10, yardsToGoal);
         } else {
@@ -66,6 +63,7 @@ public class Scenario {
                 playResult = "FUMBLE";
             }
         }
+        int timeElapsed;
         if (playResult.equals("INCOMPLETE")) {
             timeElapsed = 0;
         } else if (playType.equals("PASS")) {
@@ -73,8 +71,10 @@ public class Scenario {
         } else {
             timeElapsed = random.nextInt(16) + 5;
         }
+        //Always leaves atleast 1 second. A play that ends the game has no clock decision.
         timeElapsed = Math.min(timeElapsed, gameClock - 1);
         gameClockAfterPlay = Math.max(0, gameClock - timeElapsed);
+        //Gains of short plays are more likely to simulate more realistic plays
         if (playResult.equals("COMPLETE") || playResult.equals("GAINED YARDS")) {
             int roll = random.nextInt(100);
             int gain;
@@ -105,66 +105,36 @@ public class Scenario {
         touchdown = endPosition >= 100;
         safety = endPosition <= 0;
         boolean turnoverOnDowns = (down == 4) && (yardsGained < distance) && !safety;
-       turnover = playResult.equals("INTERCEPTION") || playResult.equals("FUMBLE") || turnoverOnDowns;
-       boolean canGoOutOfBounds = playResult.equals("COMPLETE")
-               || playResult.equals("GAINED YARDS")
-               || playResult.equals("LOST YARDS");
-       outOfBounds = canGoOutOfBounds && !touchdown && !safety && (random.nextInt(100) < 22);
-       //Changes scoreboard based on play result
-        possessionAfterPlay = possession;
-        if (touchdown || safety) {
-            if (touchdown) {
-                if (possession.equals("HOME")) {
-                    homeScore += 7;
-                } else {
-                    awayScore += 7;
-                }
-            } else {
-                if (possession.equals("HOME")) {
-                    awayScore += 2;
-                } else {
-                    homeScore += 2;
-                }
-            }
-            if (possession.equals("HOME")) {
-                possessionAfterPlay = "AWAY";
-            } else {
-                possessionAfterPlay = "HOME";
-            }
-            fieldPositionAfterPlay = 25;
+        turnover = playResult.equals("INTERCEPTION") || playResult.equals("FUMBLE") || turnoverOnDowns;
+        //Only plays where an offensive player has the ball at the end of the play can go out of bounds.
+        boolean canGoOutOfBounds = playResult.equals("COMPLETE")
+                || playResult.equals("GAINED YARDS")
+                || playResult.equals("LOST YARDS");
+        outOfBounds = canGoOutOfBounds && !touchdown && !safety && (random.nextInt(100) < 22);
+        //Scores and turnovers start a new set of downs. Rule engine checks for turnovers first.
+        if (touchdown || safety || turnover || yardsGained >= distance) {
             downAfterPlay = 1;
-            distanceAfterPlay = 10;
-        } else if (turnover) {
-            if (possession.equals("HOME")) {
-                possessionAfterPlay = "AWAY";
-            } else {
-                possessionAfterPlay = "HOME";
-            }
-            fieldPositionAfterPlay = 100 - endPosition;
-            downAfterPlay = 1;
-            distanceAfterPlay = Math.min(10, 100 - fieldPositionAfterPlay);
-        } else if (yardsGained >= distance) {
-            fieldPositionAfterPlay = endPosition;
-            downAfterPlay = 1;
-            distanceAfterPlay = Math.min(10, 100 - endPosition);
         } else {
-            fieldPositionAfterPlay = endPosition;
             downAfterPlay = down + 1;
-            distanceAfterPlay = distance - yardsGained;
         }
     }
+
     public int getGameClock() {
         return gameClock;
     }
+
     public int getHomeScore() {
         return homeScore;
     }
+
     public int getAwayScore() {
         return awayScore;
     }
+
     public String getPossession() {
         return possession;
     }
+
     public String getFieldPosition() {
         if (fieldPosition < 50) {
             return ("Own " + fieldPosition + "-yard line");
@@ -174,48 +144,47 @@ public class Scenario {
             return "Opponent's " + (100 - fieldPosition) + "-yard line";
         }
     }
+
     public int getDown() {
         return down;
     }
+
     public int getDistance() {
         return distance;
     }
+
     public String getPlayType() {
         return playType;
     }
+
     public String getPlayResult() {
         return playResult;
     }
+
     public int getYardsGained() {
         return yardsGained;
     }
+
     public int getGameClockAfterPlay() {
         return gameClockAfterPlay;
     }
-    public int getTimeElapsed() {
-        return timeElapsed;
-    }
-    public int getDistanceAfterPlay() {
-        return distanceAfterPlay;
-    }
+
     public int getDownAfterPlay() {
         return downAfterPlay;
     }
+
     public boolean isTurnover() {
         return turnover;
     }
-    public int getFieldPositionAfterPlay() {
-        return fieldPositionAfterPlay;
-    }
-    public String getPossessionAfterPlay() {
-        return possessionAfterPlay;
-    }
+
     public boolean isTouchdown() {
         return touchdown;
     }
+
     public boolean isSafety() {
         return safety;
     }
+
     public boolean isOutOfBounds() {
         return outOfBounds;
     }
